@@ -1,17 +1,60 @@
 ---
-
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Wandering Around</title>
-	</head>
-	<body>
-		<h1>Where are the wanders</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Wandering Around</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      .hero {
+        min-height: 100vh;
+        background:
+          linear-gradient(rgba(20, 20, 20, 0.55), rgba(20, 20, 20, 0.55)),
+          url("/images/backgrounds/index-image.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+
+		padding-bottom: 30vh;
+      }
+
+      h1 {
+        color: white;
+        font-size: clamp(3rem, 8vw, 6rem);
+        letter-spacing: 2px;
+      }
+
+      p {
+        margin-top: 1rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: clamp(1.1rem, 2vw, 1.5rem);
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="hero">
+      <div>
+        <h1>Wandering Around</h1>
+        <p>...</p>
+      </div>
+    </section>
+  </body>
 </html>
