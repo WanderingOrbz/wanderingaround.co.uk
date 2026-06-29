@@ -14,47 +14,63 @@
         box-sizing: border-box;
       }
 
-      body {
-        font-family: "Segoe UI", Arial, sans-serif;
+      .hero {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
       }
 
-      .hero {
-        min-height: 100vh;
-        background:
-          linear-gradient(rgba(20, 20, 20, 0.55), rgba(20, 20, 20, 0.55)),
-          url("/images/backgrounds/index-image.png");
+      .hero-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero-fallback {
+        position: absolute;
+        inset: 0;
+        background-image: url("/images/backgrounds/index-image.png");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-
-		padding-bottom: 30vh;
+        display: none;
       }
 
-      h1 {
-        color: white;
-        font-size: clamp(3rem, 8vw, 6rem);
-        letter-spacing: 2px;
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(rgba(20, 20, 20, 0.55), rgba(20, 20, 20, 0.55));
+        pointer-events: none;
       }
 
-      p {
-        margin-top: 1rem;
-        color: rgba(255, 255, 255, 0.45);
-        font-size: clamp(1.1rem, 2vw, 1.5rem);
+      @media (prefers-reduced-motion: reduce) {
+        .hero-video {
+          display: none;
+        }
+
+        .hero-fallback {
+          display: block;
+        }
       }
     </style>
   </head>
 
   <body>
     <section class="hero">
-      <div>
-        <h1>Wandering Around</h1>
-        <p>...</p>
-      </div>
+      <video
+        class="hero-video"
+        autoplay
+        muted
+        loop
+        playsinline
+        poster="/images/backgrounds/index-image.png"
+      >
+        <source src="/images/backgrounds/hero-loop.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-fallback" aria-hidden="true"></div>
     </section>
   </body>
 </html>
