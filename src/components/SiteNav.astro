@@ -1,0 +1,48 @@
+---
+// Primary vertical navigation. Inert for Version 1.1 — items don't yet
+// have real destinations, but stay real, focusable <a> elements so
+// keyboard/screen-reader behaviour and visual treatment carry over
+// unchanged once routes exist.
+const items = ['Travel', 'Photography', 'Projects', 'Journal', 'About'];
+---
+
+<nav class="site-nav" aria-label="Primary">
+  <ul>
+    {
+      items.map((item) => (
+        <li>
+          <a href="#">{item}</a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .site-nav {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-inline: clamp(1.5rem, 3vw, 2.75rem);
+    background: var(--color-bg);
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3vh, 2.25rem);
+  }
+
+  a {
+    font-size: 0.7rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    transition: color var(--duration-hover) var(--ease-calm);
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: var(--color-text);
+  }
+</style>

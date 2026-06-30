@@ -1,0 +1,103 @@
+---
+// Placeholder month index for Version 1.1. Visually establishes the
+// "Index Beneath" navigation pattern (see PROJECT-CHARTER.md decision
+// log) — real per-month linking arrives once content collections exist.
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+---
+
+<nav class="month-timeline" aria-label="Explore by month">
+  <p class="month-timeline__label">Explore by month</p>
+  <ul>
+    {
+      months.map((month) => (
+        <li>
+          <a href="#">
+            <span class="month-timeline__dot" aria-hidden="true" />
+            {month}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .month-timeline {
+    padding: clamp(1.25rem, 2.5vh, 1.75rem) clamp(1.5rem, 3vw, 2.75rem);
+    background: var(--color-bg);
+  }
+
+  .month-timeline__label {
+    margin: 0 0 1.25rem;
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  ul {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--color-border);
+  }
+
+  li {
+    flex: 1;
+  }
+
+  a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.9rem;
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    transition: color var(--duration-hover) var(--ease-calm);
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: var(--color-text);
+  }
+
+  .month-timeline__dot {
+    width: 4px;
+    height: 4px;
+    margin-top: -0.55rem;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    transition: background var(--duration-hover) var(--ease-calm);
+  }
+
+  a:hover .month-timeline__dot,
+  a:focus-visible .month-timeline__dot {
+    background: var(--color-text);
+  }
+
+  @media (max-width: 720px) {
+    ul {
+      flex-wrap: wrap;
+      row-gap: 1.5rem;
+    }
+
+    li {
+      flex: 0 0 25%;
+    }
+  }
+</style>

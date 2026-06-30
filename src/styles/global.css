@@ -1,0 +1,115 @@
+/*
+  Global foundation: reset, palette, and base typography.
+  Component-level layout and spacing live in each component's
+  own scoped <style> block — this file only holds what's
+  genuinely shared across the whole page.
+*/
+
+:root {
+  /* Tell the browser this page is intentionally dark, so it doesn't
+     substitute its own auto-dark-mode defaults for links and form
+     controls (this was bleeding an amber UA "visited" colour into
+     the nav and month index before this was set). */
+  color-scheme: dark;
+
+  /* Palette — dark charcoal / steel / stone / warm white, sampled from the design reference */
+  --color-bg: #0c0c0d;
+  --color-surface: #131314;
+  --color-stone: #46474a;
+  --color-text: #f2efe8;
+  --color-text-muted: #9b9892;
+  --color-border: rgb(242 239 232 / 14%);
+  --color-border-strong: rgb(242 239 232 / 28%);
+
+  /* Type */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --tracking-label: 0.18em;
+  --tracking-title: 0.04em;
+
+  /* Motion — subtle only, per project guardrails */
+  --ease-calm: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fade: 600ms;
+  --duration-hover: 200ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a,
+a:link,
+a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Respect reduced-motion preference — required given the project's accessibility standard */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  transition: top var(--duration-hover) var(--ease-calm);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Shared, consistent focus treatment for every inert/interactive element on the page */
+a:focus-visible,
+button:focus-visible {
+  outline: 1px solid var(--color-text);
+  outline-offset: 4px;
+}

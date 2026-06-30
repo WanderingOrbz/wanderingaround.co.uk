@@ -1,41 +1,190 @@
 ---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Logo from '../components/Logo.astro';
+import MenuToggle from '../components/MenuToggle.astro';
+import SiteNav from '../components/SiteNav.astro';
+import MonthTimeline from '../components/MonthTimeline.astro';
+import heroImage from '../assets/images/hero-fjord.png';
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Wandering Around</title>
+<BaseLayout
+  title="WanderingAround"
+  description="A personal journey through places, moments and memories, 2014–2019."
+>
+  <header class="chrome">
+    <Logo />
+    <MenuToggle />
+  </header>
 
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+  <div class="layout">
+    <SiteNav />
 
-      .hero {
-        position: relative;
-        min-height: 100vh;
-        overflow: hidden;
-        background-color: #000;
-      }
+    <main id="main">
+      <section class="hero">
+        <Image
+          class="hero__image"
+          src={heroImage}
+          alt=""
+          sizes="(max-width: 720px) 100vw, 80vw"
+          priority
+        />
+        <div class="hero__scrim" aria-hidden="true"></div>
 
-      .hero-video {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    </style>
-  </head>
+        <div class="hero__content">
+          <h1 class="hero__title" aria-label="Wandering Around">
+            <span>Wandering</span>
+            <span>Around</span>
+          </h1>
+          <span class="hero__rule" aria-hidden="true"></span>
+          <p class="hero__copy">A personal journey through places, moments and memories.</p>
+          <p class="hero__dates">2014 – 2019</p>
+          <a class="hero__cta" href="#">
+            Begin exploring
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
 
-  <body>
-    <section class="hero">
-      <video class="hero-video" autoplay muted loop playsinline>
-        <source src="/images/backgrounds/hero-loop.mp4" type="video/mp4" />
-      </video>
-    </section>
-  </body>
-</html>
+  <MonthTimeline />
+</BaseLayout>
+
+<style>
+  .chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(1.25rem, 2.5vh, 1.75rem) clamp(1.5rem, 3vw, 2.75rem);
+  }
+
+  .layout {
+    display: flex;
+    min-height: 0;
+    /* Tall enough to feel like a dominant, full-viewport hero, while
+       leaving room for the chrome bar above and the month index below. */
+    height: 78vh;
+  }
+
+  main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hero {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    background: var(--color-stone);
+  }
+
+  .hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      0deg,
+      rgb(12 12 13 / 75%) 0%,
+      rgb(12 12 13 / 25%) 32%,
+      transparent 60%
+    );
+  }
+
+  .hero__content {
+    position: absolute;
+    left: clamp(1.5rem, 4vw, 4rem);
+    bottom: clamp(2rem, 6vh, 4rem);
+    max-width: 32rem;
+  }
+
+  .hero__title {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-weight: 300;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: var(--tracking-title);
+  }
+
+  .hero__rule {
+    display: block;
+    width: 3rem;
+    height: 1px;
+    margin: 1.5rem 0;
+    background: var(--color-border-strong);
+  }
+
+  .hero__copy {
+    margin: 0;
+    max-width: 26rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-text);
+  }
+
+  .hero__dates {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  .hero__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 2.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--color-border-strong);
+    font-size: 0.7rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    transition: opacity var(--duration-hover) var(--ease-calm);
+  }
+
+  .hero__cta:hover,
+  .hero__cta:focus-visible {
+    opacity: 0.7;
+  }
+
+  .hero__cta span {
+    transition: transform var(--duration-hover) var(--ease-calm);
+  }
+
+  .hero__cta:hover span,
+  .hero__cta:focus-visible span {
+    transform: translateX(0.2rem);
+  }
+
+  /* Tablet: keep the composition, just relax the reserved hero height a little */
+  @media (max-width: 1024px) {
+    .layout {
+      height: 70vh;
+    }
+  }
+
+  /* Mobile: stack nav above hero rather than forcing a cramped side column */
+  @media (max-width: 720px) {
+    .layout {
+      flex-direction: column;
+      height: auto;
+    }
+
+    .hero {
+      height: 80vh;
+    }
+
+    .hero__content {
+      max-width: none;
+      right: clamp(1.5rem, 4vw, 4rem);
+    }
+  }
+</style>

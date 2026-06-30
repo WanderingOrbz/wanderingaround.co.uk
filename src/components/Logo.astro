@@ -1,0 +1,31 @@
+---
+// Small circular brand mark, top-left of the chrome bar.
+// Links home; will carry real navigation once routing exists beyond "/".
+---
+
+<a class="logo" href="/" aria-label="WanderingAround — home">
+  <span class="logo__mark">W.</span>
+</a>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 50%;
+    transition: border-color var(--duration-hover) var(--ease-calm);
+  }
+
+  .logo:hover,
+  .logo:focus-visible {
+    border-color: var(--color-text);
+  }
+
+  .logo__mark {
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+  }
+</style>
