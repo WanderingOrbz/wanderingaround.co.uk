@@ -24,10 +24,11 @@ v0.1.1
 - Cloudflare DNS configured
 - Animated hero landing page (looping video background) shipped
 - `CLAUDE.md` / `AGENTS.md` expanded with project-specific development guardrails
+- **Prototype P1 live** — Version 1.1 visual foundation (static hero image, left nav, month index, mobile layout) deployed to production. Navigation links and the menu toggle are intentionally inert — no real destinations yet. Mobile uses a temporary, simplified layout (centred hero text, 3/2 nav grid, month index hidden) as a placeholder pending dedicated mobile design work (see Decision Log).
 
 ### In Progress
 
-- v0.2 — responsive layout not yet verified across breakpoints; the original "professional background image" goal was superseded by a video hero
+- v0.2 — responsive layout verified across desktop, tablet, and mobile (see Prototype P1 above); mobile's current treatment is a deliberate temporary workaround, not the final design
 
 ---
 
@@ -88,6 +89,7 @@ Engineering tasks identified but not yet scheduled to a specific milestone:
 - **2026-06-30** — Reviewed `CLAUDE.md` and expanded it with concrete guardrails: content architecture, image handling, SEO baseline, accessibility standard, verification steps, commit conventions, roadmap linkage, sensitive-areas flagging, and available tooling. Design tokens and the Blogger migration edge-case policy were explicitly deferred to keep the rollout focused.
 - **2026-06-30** — Renamed `PROJECT.md` to `PROJECT-CHARTER.md` for naming consistency.
 - **2026-06-30** — Installed Context7 MCP and GitHub MCP (Docker-based, OAuth) in the development environment to support up-to-date framework lookups and repository operations.
+- **2026-06-30** — Shipped Prototype P1 (Version 1.1 visual prototype) live to production: static hero image (replacing the earlier video), left navigation, "explore by month" index, and full chrome bar. All navigation links, the menu toggle, and the month index are intentionally inert placeholders — visual foundation only, no real routing yet. Mobile received a temporary, simplified layout (hero text centred, nav rearranged into a 3/2 grid, month index hidden by default) rather than a full mobile design pass, to unblock review before further iteration.
 
 ---
 
