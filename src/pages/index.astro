@@ -10,7 +10,7 @@ import heroImage from '../assets/images/hero-fjord.png';
 
 <BaseLayout
   title="WanderingAround"
-  description="A personal journey through places, moments and memories, 2014–2019."
+  description="We are here, there, everywhere. 2006 – 2026."
 >
   <header class="chrome">
     <Logo />
@@ -37,10 +37,10 @@ import heroImage from '../assets/images/hero-fjord.png';
             <span>Around</span>
           </h1>
           <span class="hero__rule" aria-hidden="true"></span>
-          <p class="hero__copy">A personal journey through places, moments and memories.</p>
-          <p class="hero__dates">2014 – 2019</p>
+          <p class="hero__copy">We are here, there, everywhere.</p>
+          <p class="hero__dates">2006 – 2026</p>
           <a class="hero__cta" href="#">
-            Begin exploring
+            Coming soon
             <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
@@ -171,20 +171,57 @@ import heroImage from '../assets/images/hero-fjord.png';
     }
   }
 
-  /* Mobile: stack nav above hero rather than forcing a cramped side column */
+  /*
+    Mobile workaround (temporary — revisit this whole area later):
+    hero first with centred text, the nav below it, and the month
+    index hidden by default. Desktop/tablet are untouched.
+  */
   @media (max-width: 720px) {
     .layout {
       flex-direction: column;
       height: auto;
     }
 
+    main {
+      order: 1;
+    }
+
+    :global(.site-nav) {
+      order: 2;
+    }
+
     .hero {
       height: 80vh;
     }
 
+    .hero__scrim {
+      background: rgb(12 12 13 / 45%);
+    }
+
     .hero__content {
-      max-width: none;
-      right: clamp(1.5rem, 4vw, 4rem);
+      left: 50%;
+      right: auto;
+      top: 50%;
+      bottom: auto;
+      transform: translate(-50%, -50%);
+      max-width: 88%;
+      text-align: center;
+    }
+
+    .hero__title {
+      align-items: center;
+    }
+
+    .hero__rule {
+      margin-inline: auto;
+    }
+
+    .hero__copy {
+      margin-inline: auto;
+    }
+
+    :global(.month-timeline) {
+      display: none;
     }
   }
 </style>
