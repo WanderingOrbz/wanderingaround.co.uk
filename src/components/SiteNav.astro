@@ -1,9 +1,17 @@
 ---
 // Primary vertical navigation. Inert for Version 1.1 — items don't yet
-// have real destinations, but stay real, focusable <a> elements so
+// have real destinations, but stay real, focusable elements so
 // keyboard/screen-reader behaviour and visual treatment carry over
-// unchanged once routes exist.
-const items = ['Travel', 'Photography', 'Projects', 'Journal', 'About'];
+// unchanged once routes exist. "Travel" is the one exception: it opens
+// the globe overlay (a <button>, since it triggers a dialog rather than
+// navigating), not a placeholder link.
+const items = [
+  { label: 'Travel', openOverlay: 'globe-overlay' },
+  { label: 'Photography' },
+  { label: 'Projects' },
+  { label: 'Journal' },
+  { label: 'About' },
+];
 ---
 
 <nav class="site-nav" aria-label="Primary">
@@ -11,7 +19,18 @@ const items = ['Travel', 'Photography', 'Projects', 'Journal', 'About'];
     {
       items.map((item) => (
         <li>
-          <a href="#">{item}</a>
+          {item.openOverlay ? (
+            <button
+              type="button"
+              data-open-overlay={item.openOverlay}
+              aria-haspopup="dialog"
+              aria-controls={item.openOverlay}
+            >
+              {item.label}
+            </button>
+          ) : (
+            <a href="#">{item.label}</a>
+          )}
         </li>
       ))
     }
@@ -33,7 +52,8 @@ const items = ['Travel', 'Photography', 'Projects', 'Journal', 'About'];
     gap: clamp(1.5rem, 3vh, 2.25rem);
   }
 
-  a {
+  a,
+  button {
     font-size: 0.7rem;
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
@@ -42,7 +62,9 @@ const items = ['Travel', 'Photography', 'Projects', 'Journal', 'About'];
   }
 
   a:hover,
-  a:focus-visible {
+  a:focus-visible,
+  button:hover,
+  button:focus-visible {
     color: var(--color-text);
   }
 
