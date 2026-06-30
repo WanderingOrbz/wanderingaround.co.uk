@@ -1,0 +1,299 @@
+---
+// Prototype P2 — experimental reading overlay for a single journal entry.
+// Native <dialog> gives us focus-trapping, Escape-to-close, and a
+// ::backdrop for free, so the only JS needed is open/close wiring and
+// a class toggle for the enter/exit transition (see <script> below).
+// Props default to the brief's placeholder content so this can later
+// take a real entry from the Content Architecture collection unchanged.
+import { Image } from 'astro:assets';
+import heroImage from '../assets/images/hero-fjord.png';
+
+interface Props {
+  id?: string;
+  date?: string;
+  title?: string;
+  text?: string;
+  imageAlt?: string;
+  caption?: string;
+}
+
+const {
+  id = 'post-overlay',
+  date = '13 June 2019',
+  title = 'Iceland — The Long Way Home',
+  text = 'A short placeholder journal entry describing a quiet journey through open landscapes, written in a reflective travel-journal tone.',
+  imageAlt = 'A misty fjord valley between dark mountains, with a plane and its contrail crossing the clouded sky above.',
+  caption = 'Placeholder image — Prototype P2.',
+} = Astro.props;
+---
+
+<dialog id={id} class="post-overlay" aria-labelledby={`${id}-title`}>
+  <article class="post-overlay__panel">
+    <button type="button" class="post-overlay__close" data-close-overlay aria-label="Close entry">
+      <span>Close</span>
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+        <line x1="1" y1="1" x2="13" y2="13" stroke="currentColor" />
+        <line x1="13" y1="1" x2="1" y2="13" stroke="currentColor" />
+      </svg>
+    </button>
+
+    <div class="post-overlay__media">
+      <Image
+        class="post-overlay__image"
+        src={heroImage}
+        alt={imageAlt}
+        sizes="(max-width: 720px) 100vw, 480px"
+      />
+      {caption && <p class="post-overlay__caption">{caption}</p>}
+    </div>
+
+    <div class="post-overlay__body">
+      <p class="post-overlay__date">{date}</p>
+      <h2 id={`${id}-title`} class="post-overlay__title">{title}</h2>
+      <span class="post-overlay__rule" aria-hidden="true"></span>
+      <p class="post-overlay__text">{text}</p>
+
+      <nav class="post-overlay__pager" aria-label="Adjacent entries">
+        <button type="button" class="post-overlay__pager-link">
+          <span aria-hidden="true">&larr;</span> Previous
+        </button>
+        <button type="button" class="post-overlay__pager-link">
+          Next <span aria-hidden="true">&rarr;</span>
+        </button>
+      </nav>
+    </div>
+  </article>
+</dialog>
+
+<style>
+  .post-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .post-overlay[open] {
+    display: flex;
+  }
+
+  .post-overlay::backdrop {
+    background: rgb(12 12 13 / 0%);
+    backdrop-filter: blur(0px);
+    transition:
+      background var(--duration-fade) var(--ease-calm),
+      backdrop-filter var(--duration-fade) var(--ease-calm);
+  }
+
+  .post-overlay.is-open::backdrop {
+    background: rgb(12 12 13 / 60%);
+    backdrop-filter: blur(10px);
+  }
+
+  .post-overlay__panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    width: min(100%, 64rem);
+    max-height: min(85vh, 44rem);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+    transition:
+      opacity var(--duration-fade) var(--ease-calm),
+      transform var(--duration-fade) var(--ease-calm);
+  }
+
+  .post-overlay.is-open .post-overlay__panel {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .post-overlay__close {
+    position: absolute;
+    top: clamp(1.25rem, 2vw, 1.75rem);
+    right: clamp(1.25rem, 2vw, 1.75rem);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-text);
+    transition: opacity var(--duration-hover) var(--ease-calm);
+  }
+
+  .post-overlay__close:hover,
+  .post-overlay__close:focus-visible {
+    opacity: 0.7;
+  }
+
+  .post-overlay__close span {
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .post-overlay__media {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-stone);
+  }
+
+  .post-overlay__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .post-overlay__caption {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    margin: 0;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .post-overlay__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(2rem, 4vw, 3.5rem);
+    overflow-y: auto;
+  }
+
+  .post-overlay__date {
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .post-overlay__title {
+    margin: 0.75rem 0 0;
+    font-weight: 300;
+    font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    line-height: 1.15;
+    letter-spacing: var(--tracking-title);
+  }
+
+  .post-overlay__rule {
+    display: block;
+    width: 2.5rem;
+    height: 1px;
+    margin: 1.5rem 0;
+    background: var(--color-border-strong);
+  }
+
+  .post-overlay__text {
+    margin: 0;
+    max-width: 32rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text);
+  }
+
+  .post-overlay__pager {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .post-overlay__pager-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    transition: color var(--duration-hover) var(--ease-calm);
+  }
+
+  .post-overlay__pager-link:hover,
+  .post-overlay__pager-link:focus-visible {
+    color: var(--color-text);
+  }
+
+  /* Mobile: full-screen reading view, image stacked above text */
+  @media (max-width: 720px) {
+    .post-overlay {
+      padding: 0;
+    }
+
+    .post-overlay__panel {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      border: 0;
+      overflow-y: auto;
+    }
+
+    .post-overlay__media {
+      max-height: 45vh;
+    }
+
+    .post-overlay__body {
+      justify-content: flex-start;
+      padding: clamp(1.75rem, 6vw, 2.5rem);
+    }
+  }
+</style>
+
+<script>
+  function initOverlay(dialog: HTMLDialogElement) {
+    const panel = dialog.querySelector<HTMLElement>('.post-overlay__panel');
+    const closeEls = dialog.querySelectorAll<HTMLElement>('[data-close-overlay]');
+    const openTriggers = document.querySelectorAll<HTMLElement>(
+      `[data-open-overlay="${dialog.id}"]`
+    );
+
+    const open = () => {
+      dialog.showModal();
+      requestAnimationFrame(() => dialog.classList.add('is-open'));
+    };
+
+    const close = () => {
+      dialog.classList.remove('is-open');
+      const finish = () => dialog.close();
+      if (panel) {
+        panel.addEventListener('transitionend', finish, { once: true });
+      } else {
+        finish();
+      }
+    };
+
+    openTriggers.forEach((trigger) => trigger.addEventListener('click', open));
+    closeEls.forEach((el) => el.addEventListener('click', close));
+
+    // Clicking the backdrop (the dialog element itself, outside the panel) closes it
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) close();
+    });
+
+    // Native <dialog> closes instantly on Escape via the "cancel" event —
+    // intercept it so the close still gets to animate out.
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      close();
+    });
+  }
+
+  document
+    .querySelectorAll<HTMLDialogElement>('dialog.post-overlay')
+    .forEach(initOverlay);
+</script>

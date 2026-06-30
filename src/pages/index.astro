@@ -5,6 +5,7 @@ import Logo from '../components/Logo.astro';
 import MenuToggle from '../components/MenuToggle.astro';
 import SiteNav from '../components/SiteNav.astro';
 import MonthTimeline from '../components/MonthTimeline.astro';
+import PostOverlay from '../components/PostOverlay.astro';
 import heroImage from '../assets/images/hero-fjord.png';
 ---
 
@@ -39,16 +40,24 @@ import heroImage from '../assets/images/hero-fjord.png';
           <span class="hero__rule" aria-hidden="true"></span>
           <p class="hero__copy">We are here, there, everywhere.</p>
           <p class="hero__dates">2006 – 2026</p>
-          <a class="hero__cta" href="#">
+          <button
+            type="button"
+            class="hero__cta"
+            data-open-overlay="post-overlay"
+            aria-haspopup="dialog"
+            aria-controls="post-overlay"
+          >
             Coming soon
             <span aria-hidden="true">&rarr;</span>
-          </a>
+          </button>
         </div>
       </section>
     </main>
   </div>
 
   <MonthTimeline />
+
+  <PostOverlay />
 </BaseLayout>
 
 <style>
