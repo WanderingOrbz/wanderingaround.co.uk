@@ -6,6 +6,7 @@ import MenuToggle from '../components/MenuToggle.astro';
 import SiteNav from '../components/SiteNav.astro';
 import MonthTimeline from '../components/MonthTimeline.astro';
 import PostOverlay from '../components/PostOverlay.astro';
+import GlobeOverlay from '../components/GlobeOverlay.astro';
 import heroImage from '../assets/images/hero-fjord.png';
 ---
 
@@ -31,6 +32,15 @@ import heroImage from '../assets/images/hero-fjord.png';
           priority
         />
         <div class="hero__scrim" aria-hidden="true"></div>
+
+        <button
+          type="button"
+          class="hero__plane-hotspot"
+          data-open-overlay="globe-overlay"
+          aria-haspopup="dialog"
+          aria-controls="globe-overlay"
+          aria-label="View the journey on a globe"
+        ></button>
 
         <div class="hero__content">
           <h1 class="hero__title" aria-label="Wandering Around">
@@ -58,6 +68,7 @@ import heroImage from '../assets/images/hero-fjord.png';
   <MonthTimeline />
 
   <PostOverlay />
+  <GlobeOverlay />
 </BaseLayout>
 
 <style>
@@ -104,6 +115,38 @@ import heroImage from '../assets/images/hero-fjord.png';
       rgb(12 12 13 / 25%) 32%,
       transparent 60%
     );
+  }
+
+  /*
+    Generous, approximate click zone over the plane in the hero photo.
+    The plane's true on-screen position drifts with the image's
+    responsive crop, so this favours a forgiving area over pixel
+    precision — revisit if it ever feels off on an unusual viewport.
+  */
+  .hero__plane-hotspot {
+    position: absolute;
+    left: 32%;
+    top: 2%;
+    width: 18%;
+    height: 16%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(242 239 232 / 0%) 60%, rgb(242 239 232 / 0%) 100%);
+    transition: background var(--duration-hover) var(--ease-calm);
+  }
+
+  .hero__plane-hotspot:hover,
+  .hero__plane-hotspot:focus-visible {
+    background: radial-gradient(circle, rgb(242 239 232 / 12%) 0%, rgb(242 239 232 / 0%) 70%);
+    outline: none;
+  }
+
+  @media (max-width: 720px) {
+    .hero__plane-hotspot {
+      left: 8%;
+      top: 4%;
+      width: 26%;
+      height: 14%;
+    }
   }
 
   .hero__content {

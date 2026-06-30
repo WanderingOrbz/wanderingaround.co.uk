@@ -1,0 +1,288 @@
+---
+// Prototype "Hidden Globe" — full-screen overlay, same <dialog>-based
+// pattern as PostOverlay (focus-trapping, Escape, ::backdrop for free).
+// The Three.js scene itself is dynamically imported only once this
+// dialog actually opens, so it never costs anything on first page load.
+import { globeRoute } from '../data/globeRoute';
+
+interface Props {
+  id?: string;
+}
+
+const { id = 'globe-overlay' } = Astro.props;
+const total = globeRoute.length;
+---
+
+<dialog id={id} class="globe-overlay" aria-label="Flight path through the journey">
+  <button type="button" class="globe-overlay__close" data-close-overlay aria-label="Close globe">
+    <span>Close</span>
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+      <line x1="1" y1="1" x2="13" y2="13" stroke="currentColor" />
+      <line x1="13" y1="1" x2="1" y2="13" stroke="currentColor" />
+    </svg>
+  </button>
+
+  <canvas class="globe-overlay__canvas" data-globe-canvas></canvas>
+
+  <div class="globe-overlay__info">
+    <p class="globe-overlay__index" data-globe-index>1 / {total}</p>
+    <p class="globe-overlay__place" data-globe-place>{globeRoute[0].label}</p>
+    <p class="globe-overlay__next" data-globe-next>
+      Next: {globeRoute[1]?.label ?? globeRoute[0].label}
+    </p>
+  </div>
+
+  <div class="globe-overlay__progress" aria-hidden="true">
+    <div class="globe-overlay__progress-track">
+      <div class="globe-overlay__progress-fill" data-globe-progress-fill></div>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .globe-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    display: none;
+  }
+
+  .globe-overlay[open] {
+    display: block;
+  }
+
+  .globe-overlay::backdrop {
+    background: rgb(12 12 13 / 0%);
+    transition: background var(--duration-fade) var(--ease-calm);
+  }
+
+  .globe-overlay.is-open::backdrop {
+    background: rgb(12 12 13 / 100%);
+  }
+
+  .globe-overlay__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity var(--duration-fade) var(--ease-calm),
+      transform var(--duration-fade) var(--ease-calm);
+  }
+
+  .globe-overlay.is-open .globe-overlay__canvas {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .globe-overlay__close {
+    position: absolute;
+    top: clamp(1.25rem, 2vw, 1.75rem);
+    right: clamp(1.25rem, 2vw, 1.75rem);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-text);
+    transition: opacity var(--duration-hover) var(--ease-calm);
+  }
+
+  .globe-overlay__close:hover,
+  .globe-overlay__close:focus-visible {
+    opacity: 0.7;
+  }
+
+  .globe-overlay__close span {
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .globe-overlay__info {
+    position: absolute;
+    left: clamp(1.25rem, 3vw, 2.5rem);
+    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    z-index: 2;
+    max-width: 20rem;
+    padding: 1.25rem 1.5rem;
+    background: rgb(19 19 20 / 70%);
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity var(--duration-fade) var(--ease-calm),
+      transform var(--duration-fade) var(--ease-calm);
+  }
+
+  .globe-overlay.is-open .globe-overlay__info {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .globe-overlay__index {
+    margin: 0;
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .globe-overlay__place {
+    margin: 0.5rem 0 0;
+    font-weight: 300;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    letter-spacing: var(--tracking-title);
+    text-transform: uppercase;
+  }
+
+  .globe-overlay__next {
+    margin: 0.5rem 0 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+
+  .globe-overlay__progress {
+    position: absolute;
+    right: clamp(1.25rem, 3vw, 2.5rem);
+    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    z-index: 2;
+    width: min(40vw, 18rem);
+    opacity: 0;
+    transition: opacity var(--duration-fade) var(--ease-calm);
+  }
+
+  .globe-overlay.is-open .globe-overlay__progress {
+    opacity: 1;
+  }
+
+  .globe-overlay__progress-track {
+    position: relative;
+    height: 1px;
+    background: var(--color-border-strong);
+  }
+
+  .globe-overlay__progress-fill {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    background: var(--color-text);
+    transition: width 0.4s var(--ease-calm);
+  }
+
+  @media (max-width: 720px) {
+    .globe-overlay__info {
+      max-width: none;
+      right: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    .globe-overlay__place {
+      font-size: 1.5rem;
+    }
+
+    .globe-overlay__progress {
+      left: clamp(1.25rem, 4vw, 2rem);
+      right: clamp(1.25rem, 4vw, 2rem);
+      bottom: 1rem;
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  import { globeRoute } from '../data/globeRoute';
+  import type { GlobeScene } from '../scripts/globe-scene';
+
+  function initGlobeOverlay(dialog: HTMLDialogElement) {
+    const canvasEl = dialog.querySelector<HTMLCanvasElement>('[data-globe-canvas]');
+    const indexEl = dialog.querySelector<HTMLElement>('[data-globe-index]');
+    const placeEl = dialog.querySelector<HTMLElement>('[data-globe-place]');
+    const nextEl = dialog.querySelector<HTMLElement>('[data-globe-next]');
+    const progressFillEl = dialog.querySelector<HTMLElement>('[data-globe-progress-fill]');
+    const closeEls = dialog.querySelectorAll<HTMLElement>('[data-close-overlay]');
+    const openTriggers = document.querySelectorAll<HTMLElement>(
+      `[data-open-overlay="${dialog.id}"]`
+    );
+
+    if (!canvasEl) return;
+    // Re-bound as a fresh const so its non-null type carries into the
+    // closures below — TS doesn't narrow the original across them.
+    const canvas: HTMLCanvasElement = canvasEl;
+
+    let scene: GlobeScene | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
+    function updateInfo(index: number) {
+      const stop = globeRoute[index];
+      const next = globeRoute[(index + 1) % globeRoute.length];
+      if (indexEl) indexEl.textContent = `${index + 1} / ${globeRoute.length}`;
+      if (placeEl) placeEl.textContent = stop.label;
+      if (nextEl) nextEl.textContent = `Next: ${next.label}`;
+      if (progressFillEl) {
+        progressFillEl.style.width = `${(index / (globeRoute.length - 1)) * 100}%`;
+      }
+    }
+
+    async function open() {
+      dialog.showModal();
+      requestAnimationFrame(() => dialog.classList.add('is-open'));
+
+      if (!scene) {
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const { createGlobeScene } = await import('../scripts/globe-scene');
+        scene = await createGlobeScene({
+          canvas,
+          route: globeRoute,
+          reducedMotion,
+          onStopChange: updateInfo,
+        });
+        resizeObserver = new ResizeObserver(() => scene?.resize());
+        resizeObserver.observe(canvas);
+        scene.resize();
+      }
+      scene.start();
+    }
+
+    function close() {
+      dialog.classList.remove('is-open');
+      scene?.stop();
+      const finish = () => dialog.close();
+      canvas.addEventListener('transitionend', finish, { once: true });
+    }
+
+    openTriggers.forEach((trigger) => trigger.addEventListener('click', open));
+    closeEls.forEach((el) => el.addEventListener('click', close));
+
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) close();
+    });
+
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      close();
+    });
+
+    dialog.addEventListener('close', () => {
+      resizeObserver?.disconnect();
+      scene?.destroy();
+      scene = null;
+    });
+  }
+
+  document
+    .querySelectorAll<HTMLDialogElement>('dialog.globe-overlay')
+    .forEach(initGlobeOverlay);
+</script>
