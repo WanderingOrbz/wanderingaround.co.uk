@@ -20,3 +20,209 @@ Consult these guides before working on related tasks:
 - [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
 - [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
 - [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+
+---
+
+# WanderingAround Project Instructions
+
+## Project Purpose
+
+This repository contains the source code for WanderingAround.co.uk.
+
+The first public release is a premium static travel archive that faithfully preserves an existing Blogger travel journal.
+
+The long-term vision is for WanderingAround.co.uk to become the home of the WanderingAround brand, with future sections such as Photography, Galleries and other creative projects.
+
+---
+
+## Core Principles
+
+Always build with these priorities:
+
+1. User experience over technology.
+2. Content over interface.
+3. Simplicity over complexity.
+4. Quality over speed.
+5. Long-term maintainability over short-term convenience.
+
+---
+
+## Design Philosophy
+
+The website should feel:
+
+- Premium
+- Minimal
+- Timeless
+- Calm
+- Elegant
+- Spacious
+- Professional
+
+Avoid:
+
+- Busy layouts
+- Trend-driven design
+- Excessive animation
+- Bright colours
+- Unnecessary visual effects
+
+Motion should always support the story rather than distract from it.
+
+---
+
+## Content Philosophy
+
+The photography and journal entries are the heroes.
+
+The interface should frame the content rather than compete with it.
+
+Some journal entries may contain:
+
+- Images only
+- Text only
+- Images with text
+
+All layouts should accommodate these naturally.
+
+---
+
+## Navigation
+
+Navigation is one of the defining features of the experience.
+
+Visitors should always understand:
+
+- Where they are
+- How they arrived there
+- Where they can explore next
+
+Prefer elegant, intuitive navigation over traditional blog menus.
+
+---
+
+## Migration Rules
+
+The original Blogger archive is the source of truth.
+
+Always preserve:
+
+- Dates
+- Titles
+- Chronology
+- Images
+- Original wording
+
+Do not rewrite, modernise or embellish the original content.
+
+---
+
+## Content Architecture
+
+Journal entries are managed as an Astro Content Collection.
+
+Each entry's frontmatter should capture, at minimum:
+
+- `title`
+- `date` (the original Blogger publish date)
+- `images` (ordered list)
+- `slug` (stable, derived from the original Blogger URL where possible)
+
+Co-locate each entry's images with its content where practical.
+
+Future collections (Photography, Galleries, etc.) should follow the same pattern: dated, image-aware, schema-validated via `astro:content`.
+
+---
+
+## Image Guidelines
+
+Use Astro's built-in `<Image />` / `astro:assets` for content images — never a raw `<img src="/public/...">`.
+
+Every image requires descriptive alt text. For migrated journal photos, derive it from the original caption where one exists; otherwise describe the scene.
+
+Prefer modern formats (WebP/AVIF) and let Astro handle responsive sizing — don't hand-roll `srcset`.
+
+---
+
+## SEO Baseline
+
+Every page needs a unique `<title>` and meta description.
+
+Add Open Graph tags (title, description, image) for journal entries and key pages.
+
+Maintain a sitemap and `robots.txt` once the site has more than the landing page.
+
+Use canonical URLs; the production domain is `https://wanderingaround.co.uk`.
+
+---
+
+## Accessibility Standard
+
+Target WCAG 2.1 AA.
+
+- All images require alt text (see Image Guidelines).
+- Text and UI must meet AA contrast ratios against backgrounds, including over photography.
+- All interactive elements must be keyboard-reachable with a visible focus state.
+- Don't rely on colour alone to convey information.
+
+---
+
+## Development Principles
+
+Prefer:
+
+- Astro native features
+- Static generation
+- Reusable components
+- Semantic HTML
+- Modern CSS
+- Accessibility by default
+
+Avoid unnecessary dependencies.
+
+Before implementing significant features, explain the proposed approach and any important trade-offs.
+
+If there are multiple good solutions, recommend the one that best balances simplicity, maintainability and user experience.
+
+---
+
+## Verification
+
+Before calling a task complete:
+
+- Run `astro check` (TypeScript strict mode is enabled) and resolve errors.
+- Run `astro build` for anything touching routing, content collections, or config.
+- View the result in a browser — this is a visually-driven site, so "it compiles" does not mean "it looks right."
+
+---
+
+## Commit Conventions
+
+Write commit messages in the imperative mood, describing why a change was made, not just what changed (e.g. `Add responsive hero image to reduce LCP`, not `Test update`).
+
+Keep commits scoped to one logical change.
+
+---
+
+## Roadmap & Status
+
+`PROJECT-CHARTER.md` tracks the project roadmap and current milestone status.
+
+Check it before starting new work, and update its "Current Status" section when a milestone is completed.
+
+---
+
+## Sensitive Areas
+
+Treat the following as high blast-radius — explain the change and confirm before editing:
+
+- `.github/workflows/deploy.yml` (production deployment)
+- Cloudflare DNS configuration (managed outside this repo, but referenced by it)
+
+---
+
+## Available Tooling
+
+Context7 MCP is available for current framework documentation (Astro, etc.) — prefer it over relying on training data for anything version-specific.
+
+GitHub MCP is available for repository operations (issues, PRs).
