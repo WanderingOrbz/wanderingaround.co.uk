@@ -218,6 +218,32 @@ Treat the following as high blast-radius — explain the change and confirm befo
 
 - `.github/workflows/deploy.yml` (production deployment)
 - Cloudflare DNS configuration (managed outside this repo, but referenced by it)
+- `public/CNAME` (must always contain exactly `wanderingaround.co.uk` — see Known Gotchas below)
+
+---
+
+## Known Gotchas
+
+**Renaming the GitHub account/repo silently breaks Pages.** On 2026-07-01, renaming
+the GitHub owner (`wanderingorbz` → `WanderingOrbz`) reset the repo's Pages config:
+the build source flipped back to the legacy "Deploy from a branch" (Jekyll) default
+instead of "GitHub Actions", and the custom domain (`cname`) was cleared entirely.
+The old deployment kept serving from cache for a while, so the outage wasn't visible
+until the next push triggered a fresh (failing) deploy.
+
+If `wanderingaround.co.uk` 404s with GitHub's "There isn't a GitHub Pages site here"
+page after any account/org rename or transfer:
+
+1. Check `github.com/<owner>/wanderingaround.co.uk/settings/pages` → **Build and
+   deployment → Source** is set to **"GitHub Actions"**, not "Deploy from a branch".
+2. Check the **Custom domain** field still shows `wanderingaround.co.uk`.
+3. Re-run the `Deploy to GitHub Pages` workflow (`workflow_dispatch`) once both are
+   correct.
+
+`public/CNAME` (committed to the repo) makes step 2 self-healing on every successful
+deploy — GitHub Pages re-reads it from the published artifact and re-applies the
+custom domain — but step 1 (the build source toggle) has no in-repo equivalent and
+must be fixed manually in Settings if it ever resets again.
 
 ---
 
