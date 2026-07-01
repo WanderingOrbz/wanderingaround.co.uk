@@ -8,6 +8,10 @@ const GLOBE_RADIUS = 2;
 const SECONDS_PER_STOP = 3.5;
 const AUTO_ROTATE_DAMPING = 0.02;
 const CLOUD_ROTATE_SPEED = 0.015;
+// After a manual prev/next click, autoplay holds on the new stop for this
+// long before its own timer starts counting down again — long enough to
+// read as "your click won, then it resumed," short enough not to feel stuck.
+const MANUAL_NAV_PAUSE_SECONDS = 2;
 
 // Derived directly from SphereGeometry's vertex formula (uv stored as
 // (u, 1-v)) composed with Texture's default flipY=true, then verified
@@ -37,6 +41,8 @@ export interface GlobeScene {
   stop: () => void;
   destroy: () => void;
   resize: () => void;
+  next: () => void;
+  previous: () => void;
 }
 
 export async function createGlobeScene({
@@ -195,6 +201,28 @@ export async function createGlobeScene({
     return new THREE.Quaternion().setFromUnitVectors(point, targetNormal);
   }
 
+  function highlightMarker(index: number) {
+    markers.forEach((marker, i) => {
+      marker.material = i === index ? activeMaterial : idleMaterial;
+      marker.scale.setScalar(i === index ? 1.8 : 1);
+    });
+  }
+
+  // Manual prev/next: jumps currentIndex with wrap-around and holds autoplay
+  // off for MANUAL_NAV_PAUSE_SECONDS. Camera reorientation is left to the
+  // normal per-frame slerp in tick() so it slides rather than snaps; under
+  // reduced motion (where tick() never touches the quaternion) it's set
+  // directly here instead.
+  function goToStop(nextIndex: number) {
+    currentIndex = ((nextIndex % route.length) + route.length) % route.length;
+    stopElapsed = -MANUAL_NAV_PAUSE_SECONDS;
+    highlightMarker(currentIndex);
+    if (reducedMotion) {
+      globeGroup.quaternion.copy(targetQuaternionFor(currentIndex));
+    }
+    onStopChange(currentIndex);
+  }
+
   function tick() {
     frameId = requestAnimationFrame(tick);
     const now = performance.now();
@@ -210,10 +238,7 @@ export async function createGlobeScene({
           stopElapsed = 0;
           currentIndex = (currentIndex + 1) % route.length;
           onStopChange(currentIndex);
-          markers.forEach((marker, i) => {
-            marker.material = i === currentIndex ? activeMaterial : idleMaterial;
-            marker.scale.setScalar(i === currentIndex ? 1.8 : 1);
-          });
+          highlightMarker(currentIndex);
         }
 
         const target = targetQuaternionFor(currentIndex);
@@ -230,8 +255,7 @@ export async function createGlobeScene({
 
   // Reduced motion: settle on the first stop immediately, no continuous spin
   if (reducedMotion) {
-    markers[0].material = activeMaterial;
-    markers[0].scale.setScalar(1.6);
+    highlightMarker(0);
     globeGroup.quaternion.copy(targetQuaternionFor(0));
     onStopChange(0);
   }
@@ -246,6 +270,12 @@ export async function createGlobeScene({
     stop() {
       running = false;
       cancelAnimationFrame(frameId);
+    },
+    next() {
+      goToStop(currentIndex + 1);
+    },
+    previous() {
+      goToStop(currentIndex - 1);
     },
     destroy() {
       running = false;

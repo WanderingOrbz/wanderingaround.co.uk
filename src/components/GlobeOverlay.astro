@@ -26,10 +26,26 @@ const total = globeRoute.length;
 
   <div class="globe-overlay__info">
     <p class="globe-overlay__index" data-globe-index>1 / {total}</p>
-    <p class="globe-overlay__place" data-globe-place>{globeRoute[0].label}</p>
-    <p class="globe-overlay__next" data-globe-next>
-      Next: {globeRoute[1]?.label ?? globeRoute[0].label}
-    </p>
+    <div class="globe-overlay__row">
+      <div class="globe-overlay__text">
+        <p class="globe-overlay__place" data-globe-place>{globeRoute[0].label}</p>
+        <p class="globe-overlay__next" data-globe-next>
+          Next: {globeRoute[1]?.label ?? globeRoute[0].label}
+        </p>
+      </div>
+      <div class="globe-overlay__nav">
+        <button type="button" class="globe-overlay__nav-btn" data-globe-prev aria-label="Previous stop">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+            <path d="M7.5 2 3 6l4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button type="button" class="globe-overlay__nav-btn" data-globe-next-btn aria-label="Next stop">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+            <path d="M4.5 2 9 6l-4.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="globe-overlay__progress" aria-hidden="true">
@@ -112,11 +128,15 @@ const total = globeRoute.length;
 
   .globe-overlay__info {
     position: absolute;
-    left: clamp(1.25rem, 3vw, 2.5rem);
-    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    top: clamp(3.25rem, 6.5vh, 4rem);
+    right: clamp(1.25rem, 3vw, 2.5rem);
     z-index: 2;
-    max-width: 20rem;
-    padding: 1.25rem 1.5rem;
+    /* Fixed footprint, sized from the longest label/next-stop text actually
+       in globeRoute.ts, so the box — and the nav buttons pinned to the
+       top line of the place name — never move as the route advances. */
+    width: 22rem;
+    height: 8rem;
+    padding: 1.25rem 1.5rem 0.875rem;
     background: rgb(19 19 20 / 70%);
     border: 1px solid var(--color-border);
     backdrop-filter: blur(6px);
@@ -125,6 +145,20 @@ const total = globeRoute.length;
     transition:
       opacity var(--duration-fade) var(--ease-calm),
       transform var(--duration-fade) var(--ease-calm);
+  }
+
+  .globe-overlay__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+  }
+
+  .globe-overlay__text {
+    /* allows the place/next text to wrap and shrink instead of forcing
+       the box wider than its fixed width once the nav buttons take up space */
+    min-width: 0;
   }
 
   .globe-overlay.is-open .globe-overlay__info {
@@ -141,7 +175,7 @@ const total = globeRoute.length;
   }
 
   .globe-overlay__place {
-    margin: 0.5rem 0 0;
+    margin: 0;
     font-weight: 300;
     font-size: clamp(1.25rem, 2.5vw, 1.75rem);
     letter-spacing: var(--tracking-title);
@@ -153,6 +187,36 @@ const total = globeRoute.length;
     font-size: 0.7rem;
     letter-spacing: 0.04em;
     color: var(--color-text-muted);
+  }
+
+  .globe-overlay__nav {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .globe-overlay__nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-text);
+    transition:
+      opacity var(--duration-hover) var(--ease-calm),
+      border-color var(--duration-hover) var(--ease-calm);
+  }
+
+  .globe-overlay__nav-btn:hover,
+  .globe-overlay__nav-btn:focus-visible {
+    border-color: var(--color-text);
+  }
+
+  .globe-overlay__nav-btn:active {
+    opacity: 0.7;
   }
 
   .globe-overlay__progress {
@@ -185,8 +249,12 @@ const total = globeRoute.length;
 
   @media (max-width: 720px) {
     .globe-overlay__info {
-      max-width: none;
+      top: auto;
+      left: clamp(1.25rem, 4vw, 2rem);
       right: clamp(1.25rem, 4vw, 2rem);
+      bottom: clamp(1.5rem, 4vh, 2.5rem);
+      width: auto;
+      height: auto;
     }
 
     .globe-overlay__place {
@@ -212,6 +280,8 @@ const total = globeRoute.length;
     const placeEl = dialog.querySelector<HTMLElement>('[data-globe-place]');
     const nextEl = dialog.querySelector<HTMLElement>('[data-globe-next]');
     const progressFillEl = dialog.querySelector<HTMLElement>('[data-globe-progress-fill]');
+    const prevBtn = dialog.querySelector<HTMLButtonElement>('[data-globe-prev]');
+    const nextBtn = dialog.querySelector<HTMLButtonElement>('[data-globe-next-btn]');
     const closeEls = dialog.querySelectorAll<HTMLElement>('[data-close-overlay]');
     const openTriggers = document.querySelectorAll<HTMLElement>(
       `[data-open-overlay="${dialog.id}"]`
@@ -265,6 +335,8 @@ const total = globeRoute.length;
 
     openTriggers.forEach((trigger) => trigger.addEventListener('click', open));
     closeEls.forEach((el) => el.addEventListener('click', close));
+    prevBtn?.addEventListener('click', () => scene?.previous());
+    nextBtn?.addEventListener('click', () => scene?.next());
 
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) close();
@@ -273,6 +345,16 @@ const total = globeRoute.length;
     dialog.addEventListener('cancel', (event) => {
       event.preventDefault();
       close();
+    });
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        scene?.next();
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        scene?.previous();
+      }
     });
 
     dialog.addEventListener('close', () => {
