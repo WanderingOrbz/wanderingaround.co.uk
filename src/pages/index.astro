@@ -7,6 +7,7 @@ import SiteNav from '../components/SiteNav.astro';
 import MonthTimeline from '../components/MonthTimeline.astro';
 import PostOverlay from '../components/PostOverlay.astro';
 import GlobeOverlay from '../components/GlobeOverlay.astro';
+import IntroSequence from '../components/IntroSequence.astro';
 import heroImage from '../assets/images/hero-fjord.png';
 ---
 
@@ -14,6 +15,31 @@ import heroImage from '../assets/images/hero-fjord.png';
   title="WanderingAround"
   description="We are here, there, everywhere. 2006 – 2026."
 >
+  <Fragment slot="head">
+    <!--
+      First-visit intro gate. Inline and in <head> so the overlay state is
+      settled before first paint: first visits get the film ("pending", or
+      "static" under reduced motion); return visits get the page directly.
+      The failsafe clears the gate if the intro's JS never arrives, so the
+      page can never be trapped behind a dead overlay.
+    -->
+    <script is:inline>
+      (function () {
+        try {
+          if (localStorage.getItem('wa:intro-seen')) return;
+          var root = document.documentElement;
+          var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          root.setAttribute('data-intro', reduced ? 'static' : 'pending');
+          setTimeout(function () {
+            if (!window.__waIntroStarted) root.removeAttribute('data-intro');
+          }, 3000);
+        } catch (e) {
+          /* storage unavailable — skip the intro entirely */
+        }
+      })();
+    </script>
+  </Fragment>
+
   <header class="chrome">
     <Logo />
     <MenuToggle />
@@ -60,6 +86,7 @@ import heroImage from '../assets/images/hero-fjord.png';
 
   <PostOverlay />
   <GlobeOverlay />
+  <IntroSequence />
 </BaseLayout>
 
 <style>

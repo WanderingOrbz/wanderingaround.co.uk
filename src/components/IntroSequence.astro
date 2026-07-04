@@ -1,0 +1,230 @@
+---
+// First-visit cinematic intro — "The Line".
+//
+// A single point of light draws the whole journey, the camera pulls back,
+// and the route is pulled taut into the hero's rule as the page develops in
+// beneath it. Plays once per visitor (localStorage), skippable from the
+// first frame, with a static reduced-motion variant.
+//
+// The show/hide gate lives in an inline <head> script on the page (so the
+// overlay is correct at first paint); this component owns the overlay, the
+// dock choreography CSS, and the lazy-loaded canvas scene. The heavy(ish)
+// renderer in intro-scene.ts is dynamically imported only when the intro
+// will actually play — returning visitors never download it.
+---
+
+<div class="wa-intro" data-intro-overlay>
+  <canvas class="wa-intro__canvas" aria-hidden="true"></canvas>
+  <button type="button" class="wa-intro__skip">Skip intro</button>
+</div>
+
+<style is:global>
+  /* ---- Overlay ---------------------------------------------------------- */
+
+  .wa-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: none;
+    /* Charcoal from first paint, before any JS runs — no homepage flash. */
+    background: var(--color-bg);
+  }
+
+  html[data-intro='pending'] .wa-intro,
+  html[data-intro='static'] .wa-intro {
+    display: block;
+  }
+
+  /* From the dock onward the canvas fades its own background, the homepage
+     develops through beneath, and the page is immediately interactive. */
+  html[data-intro='docking'] .wa-intro {
+    display: block;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .wa-intro__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .wa-intro__skip {
+    position: absolute;
+    right: clamp(1.25rem, 3vw, 2.5rem);
+    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    z-index: 1;
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text);
+    opacity: 0;
+  }
+
+  /* The affordance earns its place: it appears at 2s, not at 0s (though the
+     button itself works from the first frame). */
+  html[data-intro='pending'] .wa-intro__skip {
+    animation: wa-intro-skip-in 600ms var(--ease-calm) 2s forwards;
+  }
+
+  html[data-intro='static'] .wa-intro__skip {
+    opacity: 0.35;
+  }
+
+  html[data-intro='docking'] .wa-intro__skip {
+    display: none;
+  }
+
+  .wa-intro__skip:hover,
+  .wa-intro__skip:focus-visible {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  @keyframes wa-intro-skip-in {
+    to {
+      opacity: 0.35;
+    }
+  }
+
+  /* ---- The page beneath, while the film is up --------------------------- */
+
+  html[data-intro='pending'] .chrome,
+  html[data-intro='pending'] .site-nav,
+  html[data-intro='pending'] .month-timeline,
+  html[data-intro='pending'] .hero__content > *,
+  html[data-intro='static'] .chrome,
+  html[data-intro='static'] .site-nav,
+  html[data-intro='static'] .month-timeline,
+  html[data-intro='static'] .hero__content > * {
+    opacity: 0;
+  }
+
+  /* Type waits slightly loose and low, so it can settle into place. */
+  html[data-intro='pending'] .hero__title,
+  html[data-intro='static'] .hero__title {
+    letter-spacing: 0.09em;
+    transform: translateY(8px);
+  }
+
+  /* ---- The dock: the page assembles in a quiet stagger ------------------ */
+
+  html[data-intro='docking'] .hero__content > * {
+    opacity: 1;
+    transition:
+      opacity 700ms var(--ease-calm),
+      transform 700ms var(--ease-calm),
+      letter-spacing 700ms var(--ease-calm);
+  }
+
+  /* The title lands the moment the line goes taut, tracking settling from
+     loose to home — type that arrives, rather than appears. */
+  html[data-intro='docking'] .hero__title {
+    letter-spacing: var(--tracking-title);
+    transform: translateY(0);
+    transition-delay: 550ms;
+  }
+
+  /* The real rule fades up exactly where the canvas line just landed. */
+  html[data-intro='docking'] .hero__rule {
+    transition-delay: 500ms;
+  }
+
+  html[data-intro='docking'] .hero__copy {
+    transition-delay: 750ms;
+  }
+
+  html[data-intro='docking'] .hero__dates {
+    transition-delay: 850ms;
+  }
+
+  html[data-intro='docking'] .hero__cta {
+    transition-delay: 950ms;
+  }
+
+  html[data-intro='docking'] .chrome,
+  html[data-intro='docking'] .site-nav,
+  html[data-intro='docking'] .month-timeline {
+    opacity: 1;
+    transition: opacity 900ms var(--ease-calm) 1100ms;
+  }
+
+  /* ---- Returning visitors: a one-line echo of the film ------------------ */
+  /* No attribute means no intro this visit — the hero rule quietly redraws
+     itself instead. (The global reduced-motion rule collapses this.) */
+
+  html:not([data-intro]) .hero__rule {
+    transform-origin: left center;
+    animation: wa-rule-draw 600ms var(--ease-calm) both;
+  }
+
+  @keyframes wa-rule-draw {
+    from {
+      transform: scaleX(0);
+    }
+  }
+</style>
+
+<script>
+  import { globeRoute } from '../data/globeRoute';
+
+  const root = document.documentElement;
+  const state = root.getAttribute('data-intro');
+
+  if (state === 'pending' || state === 'static') {
+    const overlay = document.querySelector<HTMLElement>('.wa-intro');
+    const canvas = overlay?.querySelector<HTMLCanvasElement>('.wa-intro__canvas');
+
+    if (overlay && canvas && canvas.getContext('2d')) {
+      void init(overlay, canvas, state === 'static');
+    } else {
+      root.removeAttribute('data-intro');
+    }
+  }
+
+  async function init(overlay: HTMLElement, canvas: HTMLCanvasElement, staticOnly: boolean) {
+    const { createIntroScene } = await import('../scripts/intro-scene');
+
+    // The gate's failsafe may have cancelled the intro while the module
+    // loaded on a slow connection — respect that and stand down.
+    if (!document.documentElement.hasAttribute('data-intro')) return;
+
+    // Mark started (disarms the failsafe) and never replay: the intro is a
+    // first-visit-only film, even if this play is skipped or abandoned.
+    (window as { __waIntroStarted?: boolean }).__waIntroStarted = true;
+    try {
+      localStorage.setItem('wa:intro-seen', '1');
+    } catch {
+      /* private browsing — the intro will simply replay next visit */
+    }
+
+    const onKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' || event.key === ' ') {
+        event.preventDefault();
+        scene.skip();
+      }
+    };
+
+    const scene = createIntroScene({
+      canvas,
+      route: globeRoute,
+      staticOnly,
+      getDockRect: () =>
+        document.querySelector('.hero__rule')?.getBoundingClientRect() ?? null,
+      onDockStart: () => {
+        document.documentElement.setAttribute('data-intro', 'docking');
+      },
+      onFinished: () => {
+        document.documentElement.setAttribute('data-intro', 'done');
+        document.removeEventListener('keydown', onKeydown);
+        overlay.remove();
+      },
+    });
+
+    overlay.addEventListener('click', () => scene.skip());
+    document.addEventListener('keydown', onKeydown);
+
+    scene.start();
+  }
+</script>
