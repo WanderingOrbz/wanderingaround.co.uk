@@ -4,39 +4,47 @@ _Last updated: 2026-07-05_
 
 ## Where things stand
 
-**The project is mid-pivot on the homepage intro.** Two complete intro
-candidates are parked on branches, deliberately unmerged, while a third
-("final") concept is defined:
+**"The Line" is merged into `main` and ready to ship, in cut-down form.**
+Real visitors will see only the short return-visit echo — a black hold, a
+bright line drawn at the hero rule's position, then a handoff into the same
+docking stagger the full film's ending uses — on **every** visit, not just
+return visits. This is controlled by `introMode: 'echo-only'` in
+`src/data/introConfig.ts`.
 
-- **`feature/intro-the-line`** — canvas-drawn journey-line intro, fully
-  built and verified (~24s with per-stop place names). Record:
-  [sprints/SPRINT_001_THE_LINE.md](sprints/SPRINT_001_THE_LINE.md).
+- **The full ~24s journey film is dormant, not removed.** Its code (canvas
+  scene, route data, first-visit choreography) is untouched in the
+  codebase. It isn't shown to real visitors while it gets further work, but
+  is reachable for QA via `?intro=full` on any environment. Flipping back
+  to `introMode: 'full-first-then-echo'` (full film on first visit, echo on
+  return — the original design) is a one-line change once it's ready.
 - **`feature/intro-descent`** — photoreal Blender-rendered cloud-descent
-  film, parked at motion-preview stage with the web overlay written but not
-  wired in. Record: [sprints/SPRINT_002_DESCENT.md](sprints/SPRINT_002_DESCENT.md).
-  Includes reusable Blender pipeline lessons and a working scene file.
-- **`main`** — clean; carries the site (Prototype P1) and documentation
-  only. No intro is live.
+  film, still parked at motion-preview stage, unaffected by any of the
+  above. Record: [sprints/SPRINT_002_DESCENT.md](sprints/SPRINT_002_DESCENT.md).
+- **Not yet pushed to `origin/main`.** Pushing `main` is what triggers the
+  live GitHub Pages deploy (`on: push: branches: [main]`, no manual gate) —
+  that's a separate, explicit step, not implied by the merge itself.
 
 Older branches `feature/hidden-globe` and `prototype/blog-post-overlay`
 predate all of this; check `git log` before assuming their status.
 
 ## Current sprint
 
-None active. Next sprint will be the **final intro concept** — not yet
-specified by the owner. When it starts, open `SPRINT_003_<NAME>.md` and
-follow the pattern of the two existing sprint records.
+Polishing the full journey film (owner: "a couple of bits" still to work
+on) before flipping `introMode` back to `'full-first-then-echo'`. No
+`SPRINT_003` opened — this is a continuation of
+[sprints/SPRINT_001_THE_LINE.md](sprints/SPRINT_001_THE_LINE.md), not a new
+concept.
 
 ## Outstanding work
 
-1. **Define and build the final intro** (owner is about to brief it).
-   Both parked candidates contain reusable parts: The Line's overlay/gate/
-   choreography grammar and route data; Descent's Blender pipeline, video
-   overlay component and `introConfig.ts` mode switch.
-2. [ROADMAP.md](ROADMAP.md) → Technical Backlog for everything else (SEO
+1. Push `main` to `origin` and confirm the live deploy — explicit owner
+   go-ahead required first (see "Where things stand").
+2. Finish the outstanding full-film polish, then switch `introMode` back
+   and remove/adjust the `?intro=` QA override if no longer needed.
+3. [ROADMAP.md](ROADMAP.md) → Technical Backlog for everything else (SEO
    baseline, content collections, CI type-checking, responsive pass).
 
 ## Next recommended task
 
-Take the owner's brief for the final intro concept; mine both parked
-branches for reusable pieces before building anything new.
+Confirm with the owner whether to push `main` now (goes live immediately)
+or hold until specific full-film polish items are further along.

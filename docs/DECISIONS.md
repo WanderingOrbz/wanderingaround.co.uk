@@ -65,3 +65,23 @@ decision, and (where it isn't obvious) the reason.
   their branches as complete, resumable bodies of work; a third and final
   intro concept is to be briefed. Decision recorded so future sessions
   don't mistake the parked branches for abandoned or mergeable work.
+- **2026-07-05** — Built a fuller return-visit echo for "The Line": instead
+  of the original barely-visible 600ms rule redraw, return visitors now get
+  the same black curtain as the full film, a bright line drawn at the hero
+  rule's exact position (standing in for the canvas line's landing), then a
+  handoff into the film's own docking stagger — the whole hero
+  content/chrome/nav reveal exactly as they do at the end of a first visit,
+  just reached via a short hold instead of the full journey. Iterated twice
+  on timing/feel (slower line-draw, a gentler curtain fade instead of an
+  instant cut) before sign-off.
+- **2026-07-05** — **Resolved the intro pivot**: rather than waiting on a
+  third concept, shipped a cut-down version of "The Line" — merged
+  `feature/intro-the-line` into `main`. Real visitors now see only the
+  short return-visit echo above, on every visit, via
+  `introMode: 'echo-only'` in `src/data/introConfig.ts`. The full ~24s
+  journey film's code (canvas scene, route data, first-visit choreography)
+  is untouched and still in the codebase — dormant, reachable for QA via
+  `?intro=full` — while it gets further work; switching back to
+  `introMode: 'full-first-then-echo'` (full film on first visit, echo on
+  return) is a one-line change once it's ready. `feature/intro-descent`
+  remains parked, unaffected by this.
