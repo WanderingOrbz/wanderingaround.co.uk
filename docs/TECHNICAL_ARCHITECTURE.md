@@ -71,6 +71,28 @@ re-applies the custom domain — but step 1 (the build source toggle) has no
 in-repo equivalent and must be fixed manually in Settings if it ever resets
 again.
 
+### Known gotcha: deploys fail until Settings → Pages is visited
+
+An aftershock of the rename above, observed twice on 2026-07-05/06: the
+`deploy` job (build succeeds, "Deploy to GitHub Pages" step fails) starts
+failing even though nothing changed in the repo. Visiting
+`settings/pages` — doing nothing else — auto-fires GitHub's custom-domain
+DNS check, after which **Re-run failed jobs** succeeds.
+
+The DNS records themselves are fine (the apex resolves directly to
+GitHub's Pages IPs, `185.199.108–111.153`, no Cloudflare proxying); it's
+GitHub's domain *verification state* that lapses and only refreshes when
+the settings page triggers a re-check.
+
+Workaround per incident: open `settings/pages`, wait for the DNS check to
+pass, re-run the failed deploy.
+
+Likely durable fix (not yet done): verify the domain at the **account**
+level — GitHub account Settings → Pages → Add a domain →
+`wanderingaround.co.uk`, which issues a `_github-pages-challenge-…` TXT
+record to add in Cloudflare. Account-level verification stops the
+per-repo check from being load-bearing on every deploy.
+
 ## Available tooling
 
 - **Context7 MCP** — current framework documentation (Astro, etc.). Prefer
