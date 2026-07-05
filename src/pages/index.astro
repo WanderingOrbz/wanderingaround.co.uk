@@ -145,6 +145,7 @@ import { introMode } from '../data/introConfig';
   .hero__scrim {
     position: absolute;
     inset: 0;
+    z-index: 1;
     background: linear-gradient(
       0deg,
       rgb(12 12 13 / 75%) 0%,
@@ -153,8 +154,23 @@ import { introMode } from '../data/introConfig';
     );
   }
 
+  /* Edge wash: the page's charcoal bleeds over the photo's left and top
+     edges, so the hero melts into the nav and chrome instead of meeting
+     them at a hard seam. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--color-bg) 0%, rgb(12 12 13 / 55%) 6%, transparent 17%),
+      linear-gradient(180deg, var(--color-bg) 0%, rgb(12 12 13 / 45%) 7%, transparent 19%);
+  }
+
   .hero__content {
     position: absolute;
+    z-index: 3;
     left: clamp(1.5rem, 4vw, 4rem);
     bottom: clamp(2rem, 6vh, 4rem);
     max-width: 32rem;
