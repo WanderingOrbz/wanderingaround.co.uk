@@ -19,17 +19,24 @@ import heroImage from '../assets/images/hero-fjord.png';
     <!--
       First-visit intro gate. Inline and in <head> so the overlay state is
       settled before first paint: first visits get the film ("pending", or
-      "static" under reduced motion); return visits get the page directly.
+      "static" under reduced motion); return visits get the shorter "echo"
+      (IntroSequence.astro decides how reduced-motion affects the echo,
+      since its timing lives in JS, not just CSS).
       The failsafe clears the gate if the intro's JS never arrives, so the
       page can never be trapped behind a dead overlay.
     -->
     <script is:inline>
       (function () {
         try {
-          if (localStorage.getItem('wa:intro-seen')) return;
           var root = document.documentElement;
           var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-          root.setAttribute('data-intro', reduced ? 'static' : 'pending');
+
+          if (localStorage.getItem('wa:intro-seen')) {
+            root.setAttribute('data-intro', 'echo');
+          } else {
+            root.setAttribute('data-intro', reduced ? 'static' : 'pending');
+          }
+
           setTimeout(function () {
             if (!window.__waIntroStarted) root.removeAttribute('data-intro');
           }, 3000);
