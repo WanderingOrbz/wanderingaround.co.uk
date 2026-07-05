@@ -45,10 +45,10 @@ Engineering tasks identified but not yet scheduled to a specific milestone:
   (`WanderingOrbz`) to clear the "repository moved" warning on push.
 - Run an accessibility pass against the WCAG 2.1 AA bar once more pages
   exist.
-- Decide the merge path for `feature/intro-the-line` (see
-  [sprints/SPRINT_001_THE_LINE.md](sprints/SPRINT_001_THE_LINE.md)) — the
-  intro currently runs ~24s with a name-per-stop pause; confirm the pacing
-  feels right before merging to `main`.
+- Build the **final homepage intro** (concept pending owner brief). Two
+  parked candidates hold reusable parts:
+  [sprints/SPRINT_001_THE_LINE.md](sprints/SPRINT_001_THE_LINE.md) and
+  [sprints/SPRINT_002_DESCENT.md](sprints/SPRINT_002_DESCENT.md).
 
 ---
 

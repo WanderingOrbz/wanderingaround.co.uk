@@ -45,6 +45,13 @@ decision, and (where it isn't obvious) the reason.
   immediately, pending a decision on pacing (~24s full run-time once every
   stop is named) — see
   [sprints/SPRINT_001_THE_LINE.md](sprints/SPRINT_001_THE_LINE.md).
+- **2026-07-04** — Chose **offline CGI in Blender** as the production route
+  for the "Descent" intro concept (photoreal volumetrics rendered once,
+  delivered as a small video) over real-time WebGL shaders — the only route
+  that delivers genuine photorealism without breaking the performance
+  budget on mobile. Ending re-graded from the original whiteout to dusk, so
+  the film lands on the site's charcoal. Replay policy: full film first
+  visit, short dark-mist echo on returns, all behind one config switch.
 - **2026-07-04** — Restructured project documentation from a single
   `CLAUDE.md`/`AGENTS.md` pair into a `docs/` folder split by concern
   (charter, roadmap, creative direction, reference board, technical
@@ -52,3 +59,9 @@ decision, and (where it isn't obvious) the reason.
   `CLAUDE.md`/`AGENTS.md` reduced to a pointer into `docs/README.md`. Chosen
   over keeping one growing file so each concern can be read (and updated)
   independently as the project grows past the landing page.
+- **2026-07-05** — **Pivoted away from both built intro concepts** before
+  merging either. "The Line" (`feature/intro-the-line`) and "Descent"
+  (`feature/intro-descent`, parked at motion-preview stage) both remain on
+  their branches as complete, resumable bodies of work; a third and final
+  intro concept is to be briefed. Decision recorded so future sessions
+  don't mistake the parked branches for abandoned or mergeable work.

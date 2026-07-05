@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# local-only production artifacts (superseded scenes, render chatter)
+production/descent/descent-lookdev.blend
+production/**/render-log.txt
+*.blend1
