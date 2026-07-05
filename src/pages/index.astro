@@ -7,13 +7,57 @@ import SiteNav from '../components/SiteNav.astro';
 import MonthTimeline from '../components/MonthTimeline.astro';
 import PostOverlay from '../components/PostOverlay.astro';
 import GlobeOverlay from '../components/GlobeOverlay.astro';
+import IntroSequence from '../components/IntroSequence.astro';
 import heroImage from '../assets/images/hero-fjord.png';
+import { introMode } from '../data/introConfig';
 ---
 
 <BaseLayout
   title="WanderingAround"
   description="We are here, there, everywhere. 2006 – 2026."
 >
+  <Fragment slot="head">
+    <!--
+      Intro gate. Inline and in <head> so the overlay state is settled
+      before first paint. Behaviour is driven by introConfig.ts's
+      introMode:
+        'full-first-then-echo' — full film on first visit, echo on return
+        'echo-only'            — every visitor, every visit, gets the echo
+      A `?intro=full` or `?intro=echo` URL param overrides the mode for
+      that visit only (useful for QA in production without changing what
+      real visitors see). IntroSequence.astro decides how reduced-motion
+      affects the echo, since its timing lives in JS, not just CSS.
+      The failsafe clears the gate if the intro's JS never arrives, so the
+      page can never be trapped behind a dead overlay.
+    -->
+    <script is:inline define:vars={{ introMode }}>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          var override = new URLSearchParams(location.search).get('intro');
+          var seen = localStorage.getItem('wa:intro-seen');
+
+          var showFull =
+            override === 'full' ||
+            (override !== 'echo' && introMode === 'full-first-then-echo' && !seen);
+
+          if (showFull) {
+            root.setAttribute('data-intro', reduced ? 'static' : 'pending');
+          } else {
+            root.setAttribute('data-intro', 'echo');
+          }
+
+          setTimeout(function () {
+            if (!window.__waIntroStarted) root.removeAttribute('data-intro');
+          }, 3000);
+        } catch (e) {
+          /* storage unavailable — skip the intro entirely */
+        }
+      })();
+    </script>
+  </Fragment>
+
   <header class="chrome">
     <Logo />
     <MenuToggle />
@@ -60,6 +104,7 @@ import heroImage from '../assets/images/hero-fjord.png';
 
   <PostOverlay />
   <GlobeOverlay />
+  <IntroSequence />
 </BaseLayout>
 
 <style>

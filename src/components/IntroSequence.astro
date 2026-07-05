@@ -1,0 +1,400 @@
+---
+// First-visit cinematic intro — "The Line".
+//
+// A single point of light draws the whole journey, the camera pulls back,
+// and the route is pulled taut into the hero's rule as the page develops in
+// beneath it. Plays once per visitor (localStorage), skippable from the
+// first frame, with a static reduced-motion variant.
+//
+// The show/hide gate lives in an inline <head> script on the page (so the
+// overlay is correct at first paint); this component owns the overlay, the
+// dock choreography CSS, and the lazy-loaded canvas scene. The heavy(ish)
+// renderer in intro-scene.ts is dynamically imported only when the intro
+// will actually play — returning visitors never download it.
+---
+
+<div class="wa-intro" data-intro-overlay>
+  <canvas class="wa-intro__canvas" aria-hidden="true"></canvas>
+  <span class="wa-intro__echo-line" aria-hidden="true"></span>
+  <button type="button" class="wa-intro__skip">Skip intro</button>
+</div>
+
+<style is:global>
+  /* ---- Overlay ---------------------------------------------------------- */
+
+  .wa-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: none;
+    /* Charcoal from first paint, before any JS runs — no homepage flash. */
+    background: var(--color-bg);
+  }
+
+  html[data-intro='pending'] .wa-intro,
+  html[data-intro='static'] .wa-intro {
+    display: block;
+  }
+
+  /* From the dock onward the canvas fades its own background, the homepage
+     develops through beneath, and the page is immediately interactive. */
+  html[data-intro='docking'] .wa-intro {
+    display: block;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .wa-intro__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .wa-intro__skip {
+    position: absolute;
+    right: clamp(1.25rem, 3vw, 2.5rem);
+    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    z-index: 1;
+    font-size: 0.65rem;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-text);
+    opacity: 0;
+  }
+
+  /* The affordance earns its place: it appears at 2s, not at 0s (though the
+     button itself works from the first frame). */
+  html[data-intro='pending'] .wa-intro__skip {
+    animation: wa-intro-skip-in 600ms var(--ease-calm) 2s forwards;
+  }
+
+  html[data-intro='static'] .wa-intro__skip {
+    opacity: 0.35;
+  }
+
+  html[data-intro='docking'] .wa-intro__skip {
+    display: none;
+  }
+
+  .wa-intro__skip:hover,
+  .wa-intro__skip:focus-visible {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  @keyframes wa-intro-skip-in {
+    to {
+      opacity: 0.35;
+    }
+  }
+
+  /* ---- The page beneath, while the film is up --------------------------- */
+
+  html[data-intro='pending'] .chrome,
+  html[data-intro='pending'] .site-nav,
+  html[data-intro='pending'] .month-timeline,
+  html[data-intro='pending'] .hero__content > *,
+  html[data-intro='static'] .chrome,
+  html[data-intro='static'] .site-nav,
+  html[data-intro='static'] .month-timeline,
+  html[data-intro='static'] .hero__content > *,
+  html[data-intro='echo'] .chrome,
+  html[data-intro='echo'] .site-nav,
+  html[data-intro='echo'] .month-timeline,
+  html[data-intro='echo'] .hero__content > * {
+    opacity: 0;
+  }
+
+  /* Type waits slightly loose and low, so it can settle into place. */
+  html[data-intro='pending'] .hero__title,
+  html[data-intro='static'] .hero__title,
+  html[data-intro='echo'] .hero__title {
+    letter-spacing: 0.09em;
+    transform: translateY(8px);
+  }
+
+  /* ---- The dock: the page assembles in a quiet stagger ------------------ */
+
+  html[data-intro='docking'] .hero__content > * {
+    opacity: 1;
+    transition:
+      opacity 700ms var(--ease-calm),
+      transform 700ms var(--ease-calm),
+      letter-spacing 700ms var(--ease-calm);
+  }
+
+  /* The title lands the moment the line goes taut, tracking settling from
+     loose to home — type that arrives, rather than appears. */
+  html[data-intro='docking'] .hero__title {
+    letter-spacing: var(--tracking-title);
+    transform: translateY(0);
+    transition-delay: 550ms;
+  }
+
+  /* The real rule fades up exactly where the canvas line just landed. */
+  html[data-intro='docking'] .hero__rule {
+    transition-delay: 500ms;
+  }
+
+  html[data-intro='docking'] .hero__copy {
+    transition-delay: 750ms;
+  }
+
+  html[data-intro='docking'] .hero__dates {
+    transition-delay: 850ms;
+  }
+
+  html[data-intro='docking'] .hero__cta {
+    transition-delay: 950ms;
+  }
+
+  html[data-intro='docking'] .chrome,
+  html[data-intro='docking'] .site-nav,
+  html[data-intro='docking'] .month-timeline {
+    opacity: 1;
+    transition: opacity 900ms var(--ease-calm) 1100ms;
+  }
+
+  /* ---- Returning visitors: a mini replay of the film's ending ----------- */
+  /* Same black curtain as the full film, held briefly. Then a small bright
+     line draws in at the real hero rule's exact position (measured in JS,
+     the same way the canvas line's dock target is measured) with a
+     pronounced brighten — standing in for the canvas line's landing, since
+     the echo skips the ~24s journey that leads up to it. That line then
+     hands off into the *same* docking state the full film uses: the real
+     rule and the rest of the hero content/chrome/nav fade up with their
+     usual stagger, and the decorative line fades out as the real rule takes
+     over. Skippable, same as the film. Reduced-motion handling for this
+     path lives in JS — the hold and handoff are JS timers, not CSS
+     transitions, so the global reduced-motion rule alone can't collapse
+     them — see runEcho() below. */
+
+  html[data-intro='echo'] .wa-intro {
+    display: block;
+  }
+
+  html[data-intro='echo'] .wa-intro__skip {
+    animation: wa-intro-skip-in 400ms var(--ease-calm) 150ms forwards;
+  }
+
+  .wa-intro__echo-line {
+    display: none;
+    position: fixed;
+    height: 1px;
+    background: var(--color-text);
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0;
+  }
+
+  html[data-intro='echo'] .wa-intro__echo-line {
+    display: block;
+  }
+
+  /* One continuous, time-driven animation covering draw, brighten, hold and
+     handoff-fade — deliberately not split into "animation, then a
+     docking-triggered transition": removing a class and flipping the
+     data-intro attribute in the same JS tick gives the browser no
+     intermediate painted frame to transition from, so a cross-state
+     transition here would just snap instead of fading. A single keyframe
+     sidesteps that entirely. Timeline (of 1800ms total, starting when
+     .is-drawing is added at the end of the black hold):
+       0%    – hidden, about to draw
+       61%   (~1100ms) – fully drawn, pronounced brighten peak (slow,
+             deliberate draw — this is the bulk of the timeline)
+       89%   (~1600ms) – held bright (this is when 'docking' begins, at
+             1100ms local, plus its own 500ms transition-delay before the
+             real rule starts appearing — so the line stays put until then)
+       100%  (~1800ms) – faded out, handing off to the real rule already
+             fading up underneath it */
+  .wa-intro__echo-line.is-drawing {
+    animation: wa-echo-line-draw 1800ms var(--ease-calm) forwards;
+  }
+
+  @keyframes wa-echo-line-draw {
+    0% {
+      transform: scaleX(0);
+      opacity: 0.3;
+      filter: brightness(1);
+    }
+
+    61% {
+      transform: scaleX(1);
+      opacity: 1;
+      filter: brightness(2.4);
+    }
+
+    89% {
+      transform: scaleX(1);
+      opacity: 1;
+      filter: brightness(1.6);
+    }
+
+    100% {
+      transform: scaleX(1);
+      opacity: 0;
+      filter: brightness(1.6);
+    }
+  }
+
+  /* Needs display:block restated here — otherwise it reverts to the base
+     display:none the instant [data-intro='echo'] stops matching, which
+     would cut the animation above off mid-flight even though display isn't
+     one of its animated properties. */
+  html[data-intro='docking'] .wa-intro__echo-line {
+    display: block;
+  }
+
+  /* The main film's docking snaps its curtain to transparent instantly —
+     verified, deliberate, left untouched. The echo's curtain gets its own
+     gentle fade instead, scoped to .wa-intro--echo (added in runEcho()) so
+     it can't affect the main film's already-established ending. */
+  html[data-intro='docking'] .wa-intro.wa-intro--echo {
+    transition: background-color 900ms var(--ease-calm);
+  }
+</style>
+
+<script>
+  import { globeRoute } from '../data/globeRoute';
+
+  const root = document.documentElement;
+  const state = root.getAttribute('data-intro');
+
+  if (state === 'pending' || state === 'static') {
+    const overlay = document.querySelector<HTMLElement>('.wa-intro');
+    const canvas = overlay?.querySelector<HTMLCanvasElement>('.wa-intro__canvas');
+
+    if (overlay && canvas && canvas.getContext('2d')) {
+      void init(overlay, canvas, state === 'static');
+    } else {
+      root.removeAttribute('data-intro');
+    }
+  } else if (state === 'echo') {
+    runEcho();
+  }
+
+  // Return-visit echo: black hold, a small bright line drawn at the real
+  // hero rule's position (standing in for the canvas line's landing), then
+  // a handoff into the same 'docking' state the full film ends on.
+  // Deliberately does not import intro-scene.ts — return visitors never pay
+  // for the full canvas renderer.
+  function runEcho() {
+    const HOLD_MS = 700;
+    const LINE_DRAW_MS = 1100;
+    // Matches the full film's longest docking stagger (chrome/nav: 1100ms
+    // delay + 900ms transition) so we don't clean up mid-transition.
+    const DOCK_SETTLE_MS = 2100;
+
+    const overlay = document.querySelector<HTMLElement>('.wa-intro');
+    const skipButton = overlay?.querySelector<HTMLButtonElement>('.wa-intro__skip');
+    const echoLine = overlay?.querySelector<HTMLElement>('.wa-intro__echo-line');
+    let finished = false;
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
+    let drawTimer: ReturnType<typeof setTimeout> | undefined;
+    let finishTimer: ReturnType<typeof setTimeout> | undefined;
+
+    function finish() {
+      if (finished) return;
+      finished = true;
+      clearTimeout(holdTimer);
+      clearTimeout(drawTimer);
+      clearTimeout(finishTimer);
+      document.removeEventListener('keydown', onKeydown);
+      skipButton?.removeEventListener('click', finish);
+      root.setAttribute('data-intro', 'done');
+      overlay?.remove();
+    }
+
+    function onKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape' || event.key === ' ') {
+        event.preventDefault();
+        finish();
+      }
+    }
+
+    // Scopes the curtain fade-in CSS to this path only — the main film's
+    // instant curtain-to-transparent snap on its own docking stays untouched.
+    overlay?.classList.add('wa-intro--echo');
+
+    // Disarms the gate's failsafe immediately — this path has no async
+    // import to wait on, so there's no risk of the 3s timeout racing it.
+    (window as { __waIntroStarted?: boolean }).__waIntroStarted = true;
+
+    // The hold and handoff are JS timers, not CSS transitions, so
+    // reduced-motion users need an explicit bail-out here rather than
+    // relying on the global animation-collapse rule: skip straight to the
+    // finished state.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      finish();
+      return;
+    }
+
+    skipButton?.addEventListener('click', finish);
+    document.addEventListener('keydown', onKeydown);
+
+    holdTimer = setTimeout(() => {
+      // Measured while still hidden behind the curtain (opacity doesn't
+      // affect layout, so the rect is accurate even though .hero__rule is
+      // currently invisible).
+      const rect = document.querySelector('.hero__rule')?.getBoundingClientRect();
+
+      if (echoLine && rect) {
+        echoLine.style.left = `${rect.left}px`;
+        echoLine.style.top = `${rect.top}px`;
+        echoLine.style.width = `${rect.width}px`;
+        echoLine.classList.add('is-drawing');
+      }
+
+      drawTimer = setTimeout(() => {
+        root.setAttribute('data-intro', 'docking');
+        finishTimer = setTimeout(finish, DOCK_SETTLE_MS);
+      }, LINE_DRAW_MS);
+    }, HOLD_MS);
+  }
+
+  async function init(overlay: HTMLElement, canvas: HTMLCanvasElement, staticOnly: boolean) {
+    const { createIntroScene } = await import('../scripts/intro-scene');
+
+    // The gate's failsafe may have cancelled the intro while the module
+    // loaded on a slow connection — respect that and stand down.
+    if (!document.documentElement.hasAttribute('data-intro')) return;
+
+    // Mark started (disarms the failsafe) and never replay: the intro is a
+    // first-visit-only film, even if this play is skipped or abandoned.
+    (window as { __waIntroStarted?: boolean }).__waIntroStarted = true;
+    try {
+      localStorage.setItem('wa:intro-seen', '1');
+    } catch {
+      /* private browsing — the intro will simply replay next visit */
+    }
+
+    const onKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' || event.key === ' ') {
+        event.preventDefault();
+        scene.skip();
+      }
+    };
+
+    const scene = createIntroScene({
+      canvas,
+      route: globeRoute,
+      staticOnly,
+      getDockRect: () =>
+        document.querySelector('.hero__rule')?.getBoundingClientRect() ?? null,
+      onDockStart: () => {
+        document.documentElement.setAttribute('data-intro', 'docking');
+      },
+      onFinished: () => {
+        document.documentElement.setAttribute('data-intro', 'done');
+        document.removeEventListener('keydown', onKeydown);
+        overlay.remove();
+      },
+    });
+
+    overlay.addEventListener('click', () => scene.skip());
+    document.addEventListener('keydown', onKeydown);
+
+    scene.start();
+  }
+</script>
