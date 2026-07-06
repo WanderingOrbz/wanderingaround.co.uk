@@ -126,6 +126,75 @@ const {
     transform: translateY(0) scale(1);
   }
 
+  /* ---- Close: the panel collapses into the line and docks --------------- */
+  /* Four beats, echoing the intro's docking grammar: the content clears,
+     the panel squashes vertically into a single bright 1px line, holds a
+     beat, then travels down-left — shrinking as it goes — to land exactly
+     on the short rule above the hero's COMING SOON CTA, dimming to that
+     rule's colour as it melts in. The travel target depends on the
+     viewport, so close() measures it and passes the deltas in as custom
+     properties (the same measure-then-dock pattern the intro film uses).
+     Without a measurable target the vars' fallbacks degrade to a symmetric
+     collapse-in-place. The global reduced-motion rule collapses the whole
+     thing to an instant close. */
+
+  .post-overlay.is-closing .post-overlay__media,
+  .post-overlay.is-closing .post-overlay__body,
+  .post-overlay.is-closing .post-overlay__close {
+    opacity: 0;
+    transition: opacity 140ms var(--ease-calm);
+  }
+
+  .post-overlay.is-closing .post-overlay__panel {
+    overflow: hidden;
+    animation: post-overlay-collapse-dock 860ms var(--ease-calm) forwards;
+  }
+
+  @keyframes post-overlay-collapse-dock {
+    0% {
+      transform: translate(0, 0) scaleX(1) scaleY(1);
+      background: var(--color-surface);
+      border-color: var(--color-border);
+      opacity: 1;
+    }
+
+    16% {
+      /* Hold shape while the content finishes fading. */
+      transform: translate(0, 0) scaleX(1) scaleY(1);
+    }
+
+    44% {
+      /* Collapsed to a 1px-scale line, lit like the intro's rule. */
+      transform: translate(0, 0) scaleX(1) scaleY(var(--line-scale-y, 0.0015));
+      background: var(--color-text);
+      border-color: transparent;
+      opacity: 1;
+    }
+
+    56% {
+      /* The beat: the line holds, taut, before setting off. */
+      transform: translate(0, 0) scaleX(1) scaleY(var(--line-scale-y, 0.0015));
+      background: var(--color-text);
+      opacity: 1;
+    }
+
+    92% {
+      /* Arrival: sitting exactly on the CTA's rule, still lit. */
+      transform: translate(var(--dock-dx, 0px), var(--dock-dy, 0px))
+        scaleX(var(--dock-scale-x, 0)) scaleY(var(--line-scale-y, 0.0015));
+      background: var(--color-text);
+      opacity: 1;
+    }
+
+    100% {
+      /* Melt: dims to the rule's own colour and is gone. */
+      transform: translate(var(--dock-dx, 0px), var(--dock-dy, 0px))
+        scaleX(var(--dock-scale-x, 0)) scaleY(var(--line-scale-y, 0.0015));
+      background: var(--color-border-strong);
+      opacity: 0;
+    }
+  }
+
   .post-overlay__close {
     position: absolute;
     top: clamp(1.25rem, 2vw, 1.75rem);
@@ -279,13 +348,41 @@ const {
     };
 
     const close = () => {
-      dialog.classList.remove('is-open');
-      const finish = () => dialog.close();
-      if (panel) {
-        panel.addEventListener('transitionend', finish, { once: true });
-      } else {
-        finish();
+      if (dialog.classList.contains('is-closing')) return;
+
+      // Measure the docking target — the short rule above the hero's
+      // COMING SOON CTA (its top border) — while the panel is still at
+      // full scale, and hand the travel deltas to the keyframes. Falls
+      // back to a collapse-in-place if the CTA isn't on this page.
+      const cta = document.querySelector('.hero__cta');
+      if (panel && cta) {
+        const p = panel.getBoundingClientRect();
+        const t = cta.getBoundingClientRect();
+        panel.style.setProperty('--line-scale-y', String(1 / p.height));
+        panel.style.setProperty(
+          '--dock-dx',
+          `${t.left + t.width / 2 - (p.left + p.width / 2)}px`
+        );
+        panel.style.setProperty('--dock-dy', `${t.top - (p.top + p.height / 2)}px`);
+        panel.style.setProperty('--dock-scale-x', String(t.width / p.width));
       }
+
+      dialog.classList.remove('is-open');
+      dialog.classList.add('is-closing');
+
+      // The collapse choreography runs as a keyframe animation on the
+      // panel; close the dialog when it ends. The timer is a failsafe so
+      // the page can never be stuck behind an overlay if the animation
+      // somehow never fires (mirrors the intro gate's philosophy).
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        dialog.classList.remove('is-closing');
+        dialog.close();
+      };
+      panel?.addEventListener('animationend', finish, { once: true });
+      window.setTimeout(finish, 1100);
     };
 
     openTriggers.forEach((trigger) => trigger.addEventListener('click', open));
