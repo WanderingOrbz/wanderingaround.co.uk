@@ -25,7 +25,18 @@ v0.1.1
 - Animated hero landing page (looping video background) shipped
 - `CLAUDE.md` / `AGENTS.md` expanded with project-specific development guardrails
 - **Prototype P1 live** — Version 1.1 visual foundation (static hero image, left nav, month index, mobile layout) deployed to production. Navigation links and the menu toggle are intentionally inert — no real destinations yet. Mobile uses a temporary, simplified layout (centred hero text, 3/2 nav grid, month index hidden) as a placeholder pending dedicated mobile design work (see Decision Log).
-- **First-visit cinematic intro ("The Line")** — a ~10s Canvas 2D sequence: a single point of light draws the real journey route (from `globeRoute.ts`) over faintly revealed terrain, pulls back to show the whole trip, then is pulled taut into the hero's rule as the homepage develops in. First visit only (`localStorage` key `wa:intro-seen`), skippable (time-compressed, not jump-cut), static composition under reduced motion, ~9KB of lazy-loaded JS. Returning visits get a 600ms redraw of the hero rule as an echo.
+- **Cinematic intro ("The Line")** — shipped in cut-down form: every visitor,
+  every visit, gets the short return-visit echo (a black hold, a bright line
+  drawn at the hero rule's position with a pronounced brighten, then a
+  right-to-left retraction — mirroring the draw-on in reverse — as it hands
+  off into the same docking stagger the full film's ending uses), via
+  `introMode: 'echo-only'` in `src/data/introConfig.ts`. Skippable, static
+  under reduced motion. The full ~24s journey film (a point of light drawing
+  the real route from `globeRoute.ts`, pulling back, then docking into the
+  hero) is unshipped but intact — dormant, QA-reachable via `?intro=full` —
+  while it gets further polish; flipping `introMode` back to
+  `'full-first-then-echo'` is a one-line change once it's ready. See
+  [DECISIONS.md](DECISIONS.md) for the pivot and subsequent echo refinements.
 
 ### In Progress
 

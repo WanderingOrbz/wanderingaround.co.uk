@@ -85,3 +85,32 @@ decision, and (where it isn't obvious) the reason.
   `introMode: 'full-first-then-echo'` (full film on first visit, echo on
   return) is a one-line change once it's ready. `feature/intro-descent`
   remains parked, unaffected by this.
+- **2026-07-06** — Softened the hero's left and top seams with a charcoal
+  edge-wash gradient where the photo meets the nav column and chrome bar,
+  rather than sitting in a hard-cornered rectangle. Chosen over a full
+  feather-mask dissolve and a four-edge vignette after comparing all three
+  as rendered mockups.
+- **2026-07-06** — A transient GitHub Pages deploy-step failure was cleared
+  by retriggering the workflow. The underlying cause — GitHub's custom-domain
+  verification lapsing after idle periods, failing the deploy until
+  `Settings → Pages` is visited to auto-refire the DNS check — was then
+  documented in [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md) with
+  its workaround, so this doesn't have to be rediscovered from scratch next
+  time it happens.
+- **2026-07-06** — Replaced the reading overlay's plain fade-out close with
+  the intro's own docking grammar: content clears, the panel collapses to a
+  single bright line, holds a beat, then travels down-left — shrinking as it
+  goes — to land and dim into the rule above the "COMING SOON" CTA (target
+  measured at close time, same pattern as the film's dock). Falls back to a
+  collapse-in-place when no CTA exists, with the same failsafe-timer
+  protection against a stuck overlay.
+- **2026-07-09** — At the end of the return-visit echo, the bright line now
+  retracts right-to-left — mirroring its own draw-on in reverse, including
+  the brightness/opacity curve — instead of fading out in place while the
+  real hero rule fades up underneath. Same ~1.1s duration as the draw-on
+  and the same hold before it, so only the final segment of the existing
+  keyframe animation changed; none of the JS docking/cleanup timing needed
+  retuning. Verified frame-by-frame against the dev server with Playwright
+  before commit (gradual, correctly-directioned, no premature cutoff, no
+  console errors). Committed as `16c4a71` and deployed to production
+  successfully.
