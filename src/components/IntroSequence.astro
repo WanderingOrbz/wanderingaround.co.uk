@@ -164,8 +164,9 @@
      the echo skips the ~24s journey that leads up to it. That line then
      hands off into the *same* docking state the full film uses: the real
      rule and the rest of the hero content/chrome/nav fade up with their
-     usual stagger, and the decorative line fades out as the real rule takes
-     over. Skippable, same as the film. Reduced-motion handling for this
+     usual stagger, while the decorative line retracts back the way it
+     came — right-to-left, dimming back down — as the real rule takes over.
+     Skippable, same as the film. Reduced-motion handling for this
      path lives in JS — the hold and handoff are JS timers, not CSS
      transitions, so the global reduced-motion rule alone can't collapse
      them — see runEcho() below. */
@@ -193,23 +194,29 @@
   }
 
   /* One continuous, time-driven animation covering draw, brighten, hold and
-     handoff-fade — deliberately not split into "animation, then a
+     a mirrored retraction — deliberately not split into "animation, then a
      docking-triggered transition": removing a class and flipping the
      data-intro attribute in the same JS tick gives the browser no
      intermediate painted frame to transition from, so a cross-state
      transition here would just snap instead of fading. A single keyframe
-     sidesteps that entirely. Timeline (of 1800ms total, starting when
+     sidesteps that entirely. Timeline (of 2700ms total, starting when
      .is-drawing is added at the end of the black hold):
-       0%    – hidden, about to draw
-       61%   (~1100ms) – fully drawn, pronounced brighten peak (slow,
-             deliberate draw — this is the bulk of the timeline)
-       89%   (~1600ms) – held bright (this is when 'docking' begins, at
-             1100ms local, plus its own 500ms transition-delay before the
-             real rule starts appearing — so the line stays put until then)
-       100%  (~1800ms) – faded out, handing off to the real rule already
-             fading up underneath it */
+       0%     – hidden, about to draw
+       40.7%  (~1100ms) – fully drawn, pronounced brighten peak (slow,
+              deliberate draw — this is the bulk of the draw-on)
+       59.3%  (~1600ms) – held bright (this is when 'docking' begins, at
+              1100ms local, plus its own 500ms transition-delay before the
+              real rule starts appearing — so the line stays put until then)
+       100%   (~2700ms) – retracted to nothing: the same ~1100ms draw played
+              in reverse, scaling back toward the left anchor (reading as
+              right-to-left) while dimming back down through the same
+              brightness/opacity values it drew on from, rather than just
+              cutting to transparent. The real rule's own fade (500ms +
+              700ms after docking begins, i.e. done by ~1200ms post-dock)
+              has long finished by the time this retraction completes, so
+              it reads as revealing the real rule rather than racing it. */
   .wa-intro__echo-line.is-drawing {
-    animation: wa-echo-line-draw 1800ms var(--ease-calm) forwards;
+    animation: wa-echo-line-draw 2700ms var(--ease-calm) forwards;
   }
 
   @keyframes wa-echo-line-draw {
@@ -219,22 +226,22 @@
       filter: brightness(1);
     }
 
-    61% {
+    40.7% {
       transform: scaleX(1);
       opacity: 1;
       filter: brightness(2.4);
     }
 
-    89% {
+    59.3% {
       transform: scaleX(1);
       opacity: 1;
       filter: brightness(1.6);
     }
 
     100% {
-      transform: scaleX(1);
-      opacity: 0;
-      filter: brightness(1.6);
+      transform: scaleX(0);
+      opacity: 0.3;
+      filter: brightness(1);
     }
   }
 
